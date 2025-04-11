@@ -1,6 +1,6 @@
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies and update Alpine packages
+# Install PHP extensions and dependencies
 RUN apk update && apk upgrade --no-cache && \
     apk add --no-cache \
         libpq \
@@ -12,7 +12,11 @@ RUN apk update && apk upgrade --no-cache && \
         libxml2 \
         oniguruma \
         mysql-client \
-        && docker-php-ext-install pdo pdo_mysql
+        git \
+        unzip \
+        bash \
+        icu && \
+    docker-php-ext-install pdo pdo_mysql
 
 # Optional: Clean up to reduce image size (not strictly necessary with --no-cache)
 RUN rm -rf /var/cache/apk/*
