@@ -1,8 +1,7 @@
 FROM php:8.4-fpm-alpine
 
-# Install PHP extensions and dependencies
-RUN apk update && apk upgrade --no-cache && \
-    apk add --no-cache \
+# Install system dependencies for PHP extensions (e.g. gd, intl), and CLI tools (e.g. git, bash)
+RUN apk update && apk add --no-cache \
         libpq \
         libpng \
         libjpeg-turbo \
@@ -16,10 +15,9 @@ RUN apk update && apk upgrade --no-cache && \
         unzip \
         bash \
         icu && \
-    docker-php-ext-install pdo pdo_mysql
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd pdo pdo_mysql intl
 
-# Optional: Clean up to reduce image size (not strictly necessary with --no-cache)
-RUN rm -rf /var/cache/apk/*
 
 # allow super user - set this if you use Composer as a
 # super user at all times like in docker containers
@@ -27,7 +25,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # obtain composer using multi-stage build
 # https://docs.docker.com/build/building/multi-stage/
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 #Here, we are copying only composer.json and composer.lock (instead of copying the entire source)
 # right before doing composer install.
