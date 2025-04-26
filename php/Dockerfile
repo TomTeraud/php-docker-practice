@@ -1,22 +1,30 @@
-FROM php:8.4-fpm-alpine
+FROM php:8.4-fpm-alpine AS app_prod
+
+# Useful PHP extension installer image, copy binary into your container
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
+# Install php extensions
+# exit on errors, exit on unset variables, print every command as it is executed
+RUN set -eux; \
+    install-php-extensions pdo pdo_mysql;
 
 # Install system dependencies for PHP extensions (e.g. gd, intl), and CLI tools (e.g. git, bash)
-RUN apk update && apk add --no-cache \
-        libpq \
-        libpng \
-        libjpeg-turbo \
-        freetype \
-        icu-libs \
-        zlib \
-        libxml2 \
-        oniguruma \
-        mysql-client \
-        git \
-        unzip \
-        bash \
-        icu && \
-    docker-php-ext-configure gd --with-freetype --with-jpeg && \
-    docker-php-ext-install gd pdo pdo_mysql intl
+# RUN apk update && apk add --no-cache \
+#     libpng-dev \
+#     libjpeg-turbo-dev \
+#     freetype-dev \
+#     icu-dev \
+#     zlib-dev \
+#     libxml2-dev \
+#     oniguruma-dev \
+#     mysql-client \
+#     git \
+#     unzip \
+#     bash \
+#     $PHPIZE_DEPS && \
+#     docker-php-ext-configure gd --with-freetype --with-jpeg && \
+#     docker-php-ext-install gd intl
+
 
 
 # allow super user - set this if you use Composer as a
@@ -42,3 +50,14 @@ COPY ./app .
 
 # run composer dump-autoload --optimize
 RUN composer dump-autoload --optimize
+
+FROM app_prod AS app_dev
+
+ENV XDEBUG_MODE=off
+
+#Install Xdebug
+RUN set -eux; \
+    install-php-extensions xdebug; 
+
+# Copy xdebug.ini after xdebug is installed
+COPY ./php/conf.d/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini

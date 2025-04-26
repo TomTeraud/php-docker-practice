@@ -12,6 +12,7 @@ services:
   app:
     build: 
       dockerfile: ./php/Dockerfile
+      target: app_prod
     environment:
       MYSQL_HOST: db
       MYSQL_PORT: ${MYSQL_PORT}
