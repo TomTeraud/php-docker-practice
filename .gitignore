@@ -2,7 +2,7 @@
 app/vendor/
 
 # Ignore environment files
-.env
+# .env
 
 # Ignore Docker-related files
 docker-compose.override.yaml
